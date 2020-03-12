@@ -115,8 +115,22 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# 自己的短信模板
-SMS = 0
+
+# ######## sms  ########
+
+# 腾讯云短信应用的 app_id
+TENCENT_SMS_APP_ID = 6666666666
+
+# 腾讯云短信应用的 app_key
+TENCENT_SMS_APP_KEY = "6666666666666666666666"
+
+# 腾讯云短信签名内容
+TENCENT_SMS_SIGN = "Python之路"
+
+TENCENT_SMS_TEMPLATE = {
+    'register': 548760,
+    'login': 548762
+}
 
 try:
     from .local_settings import *

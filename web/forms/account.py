@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import random
 from django import forms
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
+from django_redis import get_redis_connection
+
 from web import models
+from utils.tencent.sms import send_sms_single
 
 
 class RegisterModelForm(forms.ModelForm):
@@ -48,11 +52,23 @@ class SendSmsForm(forms.Form):
         tpl = self.request.GET.get('tpl')
         template_id = settings.TENCENT_SMS_TEMPLATE.get(tpl)
         if not template_id:
+            # self.add_error('mobile_phone','短信模板错误')
             raise ValidationError('短信模板错误')
 
         # 校验数据库中是否已有手机号
         exists = models.UserInfo.objects.filter(mobile_phone=mobile_phone).exists()
         if exists:
             raise ValidationError('手机号已存在')
+
+        code = random.randrange(1000, 9999)
+
+        # 发送短信
+        sms = send_sms_single(mobile_phone, template_id, [code, ])
+        if sms['result'] != 0:
+            raise ValidationError("短信发送失败，{}".format(sms['errmsg']))
+
+        # 验证码 写入redis（django-redis）
+        conn = get_redis_connection()
+        conn.set(mobile_phone, code, ex=60)
 
         return mobile_phone

@@ -56,6 +56,7 @@ class RegisterModelForm(forms.ModelForm):
         exists = models.UserInfo.objects.filter(username=username).exists()
         if exists:
             raise ValidationError('用户名已存在')
+            # self.add_error('username','用户名已存在')
         return username
 
     def clean_email(self):
@@ -71,7 +72,7 @@ class RegisterModelForm(forms.ModelForm):
         return encrypt.md5(pwd)
 
     def clean_confirm_password(self):
-        pwd = self.cleaned_data['password']
+        pwd = self.cleaned_data.get('password')
 
         confirm_pwd = encrypt.md5(self.cleaned_data['confirm_password'])
 
@@ -85,12 +86,16 @@ class RegisterModelForm(forms.ModelForm):
         exists = models.UserInfo.objects.filter(mobile_phone=mobile_phone).exists()
         if exists:
             raise ValidationError('手机号已注册')
-
         return mobile_phone
 
     def clean_code(self):
         code = self.cleaned_data['code']
-        mobile_phone = self.cleaned_data['mobile_phone']
+
+        # mobile_phone = self.cleaned_data['mobile_phone']
+
+        mobile_phone = self.cleaned_data.get('mobile_phone')
+        if not mobile_phone:
+            return code
 
         conn = get_redis_connection()
         redis_code = conn.get(mobile_phone)

@@ -18,6 +18,7 @@ def register(request):
     form = RegisterModelForm(data=request.POST)
     if form.is_valid():
         # 验证通过，写入数据库（密码要是密文）
+        # instance = form.save，在数据库中新增一条数据，并将新增的这条数据赋值给instance
         form.save()
         return JsonResponse({'status': True, 'data': '/login/'})
 

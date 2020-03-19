@@ -72,11 +72,15 @@ class Project(models.Model):
     creator = models.ForeignKey(verbose_name='创建者', to='UserInfo')
     create_datetime = models.DateTimeField(verbose_name='创建时间', auto_now_add=True)
 
+    # 查询：可以省事；
+    # 增加、删除、修改：无法完成
+    # project_user = models.ManyToManyField(to='UserInfo',through="ProjectUser",through_fields=('project','user'))
+
 
 class ProjectUser(models.Model):
     """ 项目参与者 """
-    user = models.ForeignKey(verbose_name='参与者', to='UserInfo')
     project = models.ForeignKey(verbose_name='项目', to='Project')
+    user = models.ForeignKey(verbose_name='参与者', to='UserInfo')
     star = models.BooleanField(verbose_name='星标', default=False)
 
     create_datetime = models.DateTimeField(verbose_name='加入时间', auto_now_add=True)

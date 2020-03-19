@@ -31,6 +31,7 @@ def register(request):
         instance = form.save()
 
         # 创建交易记录
+        # 方式一
         policy_object = models.PricePolicy.objects.filter(category=1, title="个人免费版").first()
         models.Transaction.objects.create(
             status=2,
@@ -41,6 +42,8 @@ def register(request):
             price=0,
             start_datetime=datetime.datetime.now()
         )
+
+        # 方式二
 
 
         return JsonResponse({'status': True, 'data': '/login/'})

@@ -6,6 +6,7 @@ from web.views import account
 from web.views import home
 from web.views import project
 from web.views import manage
+from web.views import wiki
 
 urlpatterns = [
     url(r'^register/$', account.register, name='register'),
@@ -28,7 +29,7 @@ urlpatterns = [
         url(r'^issues/$', manage.issues, name='issues'),
         url(r'^statistics/$', manage.statistics, name='statistics'),
         url(r'^file/$', manage.file, name='file'),
-        url(r'^wiki/$', manage.wiki, name='wiki'),
+        url(r'^wiki/$', wiki.wiki, name='wiki'),
         url(r'^setting/$', manage.setting, name='setting'),
     ], None, None)),
 ]

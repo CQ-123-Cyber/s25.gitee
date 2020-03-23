@@ -96,3 +96,6 @@ class Wiki(models.Model):
     # 子关联
     parent = models.ForeignKey(verbose_name='父文章', to="Wiki", null=True, blank=True, related_name='children')
 
+    def __str__(self):
+        return self.title
+

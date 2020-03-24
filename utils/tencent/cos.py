@@ -19,3 +19,18 @@ def create_bucket(bucket, region="ap-chengdu"):
         Bucket=bucket,
         ACL="public-read"  # private  /  public-read / public-read-write
     )
+
+
+def upload_file(bucket, region, file_object, key):
+    config = CosConfig(Region=region, SecretId=settings.TENCENT_COS_ID, SecretKey=settings.TENCENT_COS_KEY)
+    client = CosS3Client(config)
+
+    response = client.upload_file_from_buffer(
+        Bucket=bucket,
+        Body=file_object,  # 文件对象
+        Key=key  # 上传到桶之后的文件名
+    )
+
+    # https://wangyang-1251317460.cos.ap-chengdu.myqcloud.com/p1.png
+
+    return "https://{}.cos.{}.myqcloud.com/{}".format(bucket, region, key)

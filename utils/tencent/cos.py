@@ -34,3 +34,26 @@ def upload_file(bucket, region, file_object, key):
     # https://wangyang-1251317460.cos.ap-chengdu.myqcloud.com/p1.png
 
     return "https://{}.cos.{}.myqcloud.com/{}".format(bucket, region, key)
+
+
+def delete_file(bucket, region, key):
+    config = CosConfig(Region=region, SecretId=settings.TENCENT_COS_ID, SecretKey=settings.TENCENT_COS_KEY)
+    client = CosS3Client(config)
+
+    client.delete_object(
+        Bucket=bucket,
+        Key=key
+    )
+
+
+def delete_file_list(bucket, region, key_list):
+    config = CosConfig(Region=region, SecretId=settings.TENCENT_COS_ID, SecretKey=settings.TENCENT_COS_KEY)
+    client = CosS3Client(config)
+    objects = {
+        "Quiet": "true",
+        "Object": key_list
+    }
+    client.delete_objects(
+        Bucket=bucket,
+        Delete=objects
+    )

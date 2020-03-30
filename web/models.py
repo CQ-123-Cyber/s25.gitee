@@ -9,6 +9,8 @@ class UserInfo(models.Model):
 
     # price_policy = models.ForeignKey(verbose_name='价格策略', to='PricePolicy', null=True, blank=True)
 
+    def __str__(self):
+        return self.username
 
 class PricePolicy(models.Model):
     """ 价格策略 """

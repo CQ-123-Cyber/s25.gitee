@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.forms import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
+from django.http import StreamingHttpResponse, FileResponse
 
 import requests
 
@@ -214,12 +215,14 @@ def file_download(request, project_id, file_id):
 
     file_object = models.FileRepository.objects.filter(id=file_id, project_id=project_id).first()
     res = requests.get(file_object.file_path)
-    data = res.content
-    import mimetypes
-    tp = mimetypes.guess_type(file_object.file_path)[0]
 
-    response = HttpResponse(data)
-    # 设置响应头
-    # response['Content-Type'] = "{}; encoding=utf-8".format(tp)
-    response['Content-Disposition'] = "attachment; filename={};".format(file_object.name)
+    # 文件分块处理（适用于大文件）     @孙歆尧
+    data = res.iter_content()
+
+    # 设置content_type=application/octet-stream 用于提示下载框        @孙歆尧
+    response = HttpResponse(data, content_type="application/octet-stream")
+    from django.utils.encoding import escape_uri_path
+
+    # 设置响应头：中文件文件名转义      @王洋
+    response['Content-Disposition'] = "attachment; filename={};".format(escape_uri_path(file_object.name))
     return response

@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 import json
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
 from django.forms import model_to_dict
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse
+
+import requests
 
 from web.forms.file import FolderModelForm, FileModelForm
 from web import models
@@ -177,8 +180,6 @@ def file_post(request, project_id):
     # 把获取到的数据写入数据库即可
     form = FileModelForm(request, data=request.POST)
     if form.is_valid():
-
-
         # 通过ModelForm.save存储到数据库中的数据返回的isntance对象，无法通过get_xx_display获取choice的中文
         # form.instance.file_type = 1
         # form.update_user = request.tracer.user
@@ -200,8 +201,21 @@ def file_post(request, project_id):
             'file_size': instance.file_size,
             'username': instance.update_user.username,
             'datetime': instance.update_datetime.strftime("%Y年%m月%d日 %H:%M"),
+            'download_url': reverse('file_download', kwargs={"project_id": project_id, 'file_id': instance.id})
             # 'file_type': instance.get_file_type_display()
         }
         return JsonResponse({'status': True, 'data': result})
 
     return JsonResponse({'status': False, 'data': "文件错误"})
+
+
+def file_download(request, project_id, file_id):
+    """ 下载文件 """
+    file_object = models.FileRepository.objects.filter(id=file_id, project_id=project_id).first()
+    res = requests.get(file_object.file_path)
+    data = res.content
+
+    response = HttpResponse(data)
+    # 设置响应头
+    response['Content-Disposition'] = "attachment; filename={}".format(file_object.name)
+    return response

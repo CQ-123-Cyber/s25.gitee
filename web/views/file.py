@@ -211,11 +211,15 @@ def file_post(request, project_id):
 
 def file_download(request, project_id, file_id):
     """ 下载文件 """
+
     file_object = models.FileRepository.objects.filter(id=file_id, project_id=project_id).first()
     res = requests.get(file_object.file_path)
     data = res.content
+    import mimetypes
+    tp = mimetypes.guess_type(file_object.file_path)[0]
 
     response = HttpResponse(data)
     # 设置响应头
-    response['Content-Disposition'] = "attachment; filename={}".format(file_object.name)
+    # response['Content-Type'] = "{}; encoding=utf-8".format(tp)
+    response['Content-Disposition'] = "attachment; filename={};".format(file_object.name)
     return response

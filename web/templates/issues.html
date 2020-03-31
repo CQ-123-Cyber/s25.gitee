@@ -1,5 +1,6 @@
 {% extends 'layout/manage.html' %}
 {% load static %}
+{% load issues %}
 {% block css %}
     <link rel="stylesheet" href="{% static 'plugin/editor-md/css/editormd.min.css' %}">
     <link rel="stylesheet" href="{% static 'plugin/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
@@ -29,10 +30,13 @@
             color: white;
             padding: 1px 5px;
             border-radius: 5px;
+            background-color: #dddddd;
         }
-        .editormd{
+
+        .editormd {
             margin-bottom: 0;
         }
+
         .pd-0 {
             padding: 0 !important;
         }
@@ -63,31 +67,45 @@
                 <table class="table">
 
                     <tbody class="issues-list">
-                    <tr>
-                        <td class="number">
-                            <i class="fa fa-circle text-danger"></i>
-                            <a target="_blank" href="/manage/18/issues/detail/10/">#010</a>
-                        </td>
-                        <td class="issue">
-                            <div>
-                                <a target="_blank" href="/manage/18/issues/detail/10/">去死</a>
-                            </div>
-                            <div class="tags">
-                                    <span class="type" style="background-color: #56b8eb">
-                                        功能
+                    {% for item in issues_object_list %}
+                        <tr>
+                            <td class="number">
+                                <i class="fa fa-circle text-{{ item.priority }}"></i>
+                                <a target="_blank" href="#">{% string_just item.id %}</a>
+                            </td>
+                            <td class="issue">
+                                <div>
+                                    <a target="_blank" href="#">{{ item.subject }}</a>
+                                </div>
+                                <div class="tags">
+                                    <span class="type">
+                                        {{ item.issues_type.title }}
                                     </span>
-                                <span>
-                                        <i class="fa fa-refresh" aria-hidden="true"></i> 已解决
+                                    <span>
+                                        <i class="fa fa-refresh" aria-hidden="true"></i>
+                                        {{ item.get_status_display }}
                                     </span>
-                                <span>
-                                        <i class="fa fa-user-o" aria-hidden="true"></i> wupeiqi
+                                    {% if item.assign %}
+                                        <span>
+                                        <i class="fa fa-hand-o-right" aria-hidden="true"></i>
+                                        {{ item.assign.username }}
                                     </span>
+                                    {% endif %}
 
-
-                                <span><i class="fa fa-clock-o" aria-hidden="true"></i> 2020年3月30日 11:26 更新</span>
-                            </div>
-                        </td>
-                    </tr>
+                                    <span>
+                                        <i class="fa fa-user-o" aria-hidden="true"></i>
+                                        {{ item.creator.username }}
+                                    </span>
+                                    {% if item.end_date %}
+                                        <span><i class="fa fa-calendar"
+                                                 aria-hidden="true"></i> {{ item.end_date }} 截止</span>
+                                    {% endif %}
+                                    <span><i class="fa fa-clock-o"
+                                             aria-hidden="true"></i> {{ item.latest_update_datetime }} 更新</span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
 
                     </tbody>
                 </table>
@@ -95,13 +113,7 @@
 
             <nav aria-label="...">
                 <ul class="pagination" style="margin-top: 0;">
-                    <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
-                    <li class="active"><a href="#">1 <span class="sr-only">(current)</span></a></li>
-                    <li><a href="#">2</a></li>
-                    <li><a href="#">3</a></li>
-                    <li><a href="#">4</a></li>
-                    <li><a href="#">5</a></li>
-                    <li><a href="#" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+                    {{ page_html|safe }}
                 </ul>
             </nav>
         </div>

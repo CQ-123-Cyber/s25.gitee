@@ -3,12 +3,32 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from web.forms.issues import IssuesModelForm
+from web import models
+
+from utils.pagination import Pagination
 
 
 def issues(request, project_id):
     if request.method == "GET":
+        # 分页获取数据
+        queryset = models.Issues.objects.filter(project_id=project_id)
+
+        page_object = Pagination(
+            current_page=request.GET.get('page'),
+            all_count=queryset.count(),
+            base_url=request.path_info,
+            query_params=request.GET,
+            per_page=1
+        )
+        issues_object_list = queryset[page_object.start:page_object.end]
+
         form = IssuesModelForm(request)
-        return render(request, 'issues.html', {'form': form})
+        context = {
+            'form': form,
+            'issues_object_list': issues_object_list,
+            'page_html': page_object.page_html()
+        }
+        return render(request, 'issues.html', context)
 
     form = IssuesModelForm(request, data=request.POST)
     if form.is_valid():

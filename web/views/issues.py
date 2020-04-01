@@ -4,23 +4,79 @@ import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.safestring import mark_safe
 from web.forms.issues import IssuesModelForm, IssuesReplyModelForm
 from web import models
 
 from utils.pagination import Pagination
 
 
+class CheckFilter(object):
+    def __init__(self, name, data_list, request):
+        self.name = name
+        self.data_list = data_list
+        self.request = request
+
+    def __iter__(self):
+        for item in self.data_list:
+            key = str(item[0])
+            text = item[1]
+            ck = ""
+            # 如果当前用户请求的URL中status和当前循环key相等
+            value_list = self.request.GET.getlist(self.name)
+            if key in value_list:
+                ck = 'checked'
+                value_list.remove(key)
+            else:
+                value_list.append(key)
+
+            # 为自己生成URL
+            # 在当前URL的基础上去增加一项
+            # status=1&age=19
+            from django.http import QueryDict
+            query_dict = self.request.GET.copy()
+            query_dict._mutable = True
+            query_dict.setlist(self.name, value_list)
+            if 'page' in query_dict:
+                query_dict.pop('page')
+
+            param_url = query_dict.urlencode()
+            if param_url:
+                url = "{}?{}".format(self.request.path_info, param_url)  # status=1&status=2&status=3&xx=1
+            else:
+                url = self.request.path_info
+
+            tpl = '<a class="cell" href="{url}"><input type="checkbox" {ck} /><label>{text}</label></a>'
+            html = tpl.format(url=url, ck=ck, text=text)
+            yield mark_safe(html)
+
+
 def issues(request, project_id):
     if request.method == "GET":
-        # 分页获取数据
-        queryset = models.Issues.objects.filter(project_id=project_id)
+        # 根据URL做筛选，筛选条件（根据用户通过GET传过来的参数实现）
+        # ?status=1&status=2&issues_type=1
+        allow_filter_name = ['issues_type', 'status', 'priority']
+        condition = {}
+        for name in allow_filter_name:
+            value_list = request.GET.getlist(name)  # [1,2]
+            if not value_list:
+                continue
+            condition["{}__in".format(name)] = value_list
+        """
+        condition = {
+            "status__in":[1,2],
+            'issues_type':[1,]
+        }
+        """
 
+        # 分页获取数据
+        queryset = models.Issues.objects.filter(project_id=project_id).filter(**condition)
         page_object = Pagination(
             current_page=request.GET.get('page'),
             all_count=queryset.count(),
             base_url=request.path_info,
             query_params=request.GET,
-            per_page=1
+            per_page=50
         )
         issues_object_list = queryset[page_object.start:page_object.end]
 
@@ -28,7 +84,9 @@ def issues(request, project_id):
         context = {
             'form': form,
             'issues_object_list': issues_object_list,
-            'page_html': page_object.page_html()
+            'page_html': page_object.page_html(),
+            "status_filter": CheckFilter('status', models.Issues.status_choices, request),
+            "priority_filter": CheckFilter('priority', models.Issues.priority_choices, request),
         }
         return render(request, 'issues.html', context)
 

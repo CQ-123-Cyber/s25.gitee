@@ -307,6 +307,7 @@
     <script>
         var WIKI_UPLOAD_URL = "{% url 'wiki_upload' project_id=request.tracer.project.id %}";
         var ISSUES_RECORD_API = "{% url 'issues_record' project_id=request.tracer.project.id issues_id=issues_object.id %}";
+        var EDITOR;
 
         $(function () {
             initDatePicker();
@@ -315,6 +316,7 @@
             bindReply();
             bindCancelReplyUser();
             bindSubmit();
+            bindChangeIssues();
         });
 
         /*
@@ -334,7 +336,7 @@
         初始化markdown编辑器（textare转换为编辑器）
          */
         function initEditorMd() {
-            editormd('editor', {
+            EDITOR = editormd('editor', {
                 placeholder: "请输入内容",
                 height: 300,
                 path: "{% static 'plugin/editor-md/lib/' %}",
@@ -354,9 +356,6 @@
             })
         }
 
-        function saveDesc() {
-            alert(666);
-        }
 
         /*
         问题评论的初始化
@@ -451,6 +450,21 @@
             })
 
         }
+
+        function bindChangeIssues() {
+            $('#editForm').find('.form-control').change(function () {
+                // 内容变更
+                var postDict = {name: $(this).attr('name'), value: $(this).val()};
+                console.log(postDict);
+
+            });
+        }
+
+        function saveDesc() {
+            var postDict = {name: 'desc', value: EDITOR.getValue()};
+            console.log(postDict);
+        }
+
     </script>
 
 

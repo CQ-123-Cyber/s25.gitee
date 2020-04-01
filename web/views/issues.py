@@ -111,7 +111,6 @@ def issues_change(request, project_id, issues_id):
     """
     name = post_dict.get('name')
     value = post_dict.get('value')
-    print(post_dict)
     field_object = models.Issues._meta.get_field(name)
 
     def create_reply_record(content):
@@ -190,8 +189,47 @@ def issues_change(request, project_id, issues_id):
         return JsonResponse({'status': True, 'data': create_reply_record(change_record)})
 
     # 1.3 choices字段
+    if name in ['priority', 'status', 'mode']:
+        selected_text = None
+        for key, text in field_object.choices:
+            if str(key) == value:
+                selected_text = text
+        if not selected_text:
+            return JsonResponse({'status': False, 'error': "您选择的值不存在"})
+
+        setattr(issues_object, name, value)
+        issues_object.save()
+        change_record = "{}更新为{}".format(field_object.verbose_name, selected_text)
+        return JsonResponse({'status': True, 'data': create_reply_record(change_record)})
+
     # 1.4 M2M字段
+    if name == "attention":
+        # {"name":"attention","value":[1,2,3]}
+        if not isinstance(value, list):
+            return JsonResponse({'status': False, 'error': "数据格式错误"})
 
-    # 2. 生成操作记录
+        if not value:
+            issues_object.attention.set(value)
+            issues_object.save()
+            change_record = "{}更新为空".format(field_object.verbose_name)
+        else:
+            # values=["1","2,3,4]  ->   id是否是项目成员（参与者、创建者）
+            # 获取当前项目的所有成员
+            user_dict = {str(request.tracer.project.creator_id): request.tracer.project.creator.username}
+            project_user_list = models.ProjectUser.objects.filter(project_id=project_id)
+            for item in project_user_list:
+                user_dict[str(item.user_id)] = item.user.username
+            username_list = []
+            for user_id in value:
+                username = user_dict.get(str(user_id))
+                if not username:
+                    return JsonResponse({'status': False, 'error': "用户不存在请重新设置"})
+                username_list.append(username)
 
-    return JsonResponse({})
+            issues_object.attention.set(value)
+            issues_object.save()
+            change_record = "{}更新为{}".format(field_object.verbose_name, ",".join(username_list))
+
+        return JsonResponse({'status': True, 'data': create_reply_record(change_record)})
+
+    return JsonResponse({'status': False, 'error': "滚"})

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import json
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -88,3 +89,65 @@ def issues_record(request, project_id, issues_id):
 
         return JsonResponse({'status': True, 'data': info})
     return JsonResponse({'status': False, 'error': form.errors})
+
+
+@csrf_exempt
+def issues_change(request, project_id, issues_id):
+    issues_object = models.Issues.objects.filter(id=issues_id, project_id=project_id).first()
+
+    post_dict = json.loads(request.body.decode('utf-8'))
+    """
+    {'name': 'subject', 'value': '好饿呀sdfasdf'}
+    {'name': 'subject', 'value': ''}
+    
+    {'name': 'desc', 'value': '好饿呀sdfasdf'}
+    {'name': 'desc', 'value': ''}
+    
+    {'name': 'start_date', 'value': '好饿呀sdfasdf'}
+    {'name': 'end_date', 'value': '好饿呀sdfasdf'}
+    
+    {'name': 'issues_type', 'value': '2'}
+    {'name': 'assign', 'value': '4'}
+    """
+    name = post_dict.get('name')
+    value = post_dict.get('value')
+    print(post_dict)
+    field_object = models.Issues._meta.get_field(name)
+    # 1. 数据库字段更新
+    # 1.1 文本
+    if name in ["subject", 'desc', 'start_date', 'end_date']:
+        if not value:
+            if not field_object.null:
+                return JsonResponse({'status': False, 'error': "您选择的值不能为空"})
+            setattr(issues_object, name, None)
+            issues_object.save()
+            change_record = "{}更新为空".format(field_object.verbose_name)
+        else:
+            setattr(issues_object, name, value)
+            issues_object.save()
+            # 记录：xx更为了value
+            change_record = "{}更新为{}".format(field_object.verbose_name, value)
+
+        new_object = models.IssuesReply.objects.create(
+            reply_type=1,
+            issues=issues_object,
+            content=change_record,
+            creator=request.tracer.user,
+        )
+        new_reply_dict = {
+            'id': new_object.id,
+            'reply_type_text': new_object.get_reply_type_display(),
+            'content': new_object.content,
+            'creator': new_object.creator.username,
+            'datetime': new_object.create_datetime.strftime("%Y-%m-%d %H:%M"),
+            'parent_id': new_object.reply_id
+        }
+
+        return JsonResponse({'status': True, 'data': new_reply_dict})
+    # 1.2 FK字段
+    # 1.3 choices字段
+    # 1.4 M2M字段
+
+    # 2. 生成操作记录
+
+    return JsonResponse({})

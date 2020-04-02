@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# !/usr/bin/env python
-# -*- coding:utf-8 -*-
 from django.template import Library
 from django.urls import reverse
 from web import models

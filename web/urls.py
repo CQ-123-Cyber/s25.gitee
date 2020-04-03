@@ -55,6 +55,7 @@ urlpatterns = [
         url(r'^dashboard/issues/chart/$', dashboard.issues_chart, name='issues_chart'),
 
         url(r'^statistics/$', statistics.statistics, name='statistics'),
+        url(r'^statistics/priority/$', statistics.statistics_priority, name='statistics_priority'),
 
     ], None, None)),
 

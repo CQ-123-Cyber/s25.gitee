@@ -11,7 +11,30 @@
                 <span class="input-group-addon">日期范围</span>
                 <input id="rangePicker" type="text" class="form-control">
             </div>
+        </div>
 
+        <div class="row">
+            <div class="col-md-8">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-bar-chart" aria-hidden="true"></i> 人员工作进度
+                    </div>
+                    <div class="panel-body">
+                        <div id="projectUser" style="height: 300px;"></div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <i class="fa fa-pie-chart" aria-hidden="true"></i> 优先级统计
+                    </div>
+                    <div class="panel-body">
+                        <div id="priority" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -21,10 +44,14 @@
 
     <script src="{% static 'plugin/daterangepicker/moment.min.js' %}"></script>
     <script src="{% static 'plugin/daterangepicker/daterangepicker.js' %}"></script>
+    <script src="{% static 'plugin/highcharts/highcharts.js' %}"></script>
 
     <script>
+        var PRIORITY_API = "{% url 'statistics_priority' project_id=request.tracer.project.id %}";
         $(function () {
             initDateRangePicker();
+
+            priority(moment().format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD'));
         });
 
         function initDateRangePicker() {
@@ -56,8 +83,51 @@
 
             $('#rangePicker').daterangepicker(options, function (start, end, label) {
                 // 选择了时间之后，函数自动被触发。
-                console.log(start.format('YYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'));
+                priority(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'))
             });
+        }
+
+        function priority(start, end) {
+            var config = {
+                chart: {
+                    type: 'pie'
+                },
+                title: {
+                    text: null
+                },
+                credits: {
+                    enabled: false // 关闭版权信息
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y}</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: false
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    name: '优先级',
+                    colorByPoint: true,
+                    data: []
+                }]
+            };
+            $.ajax({
+                url: PRIORITY_API,
+                type: "GET",
+                data: {start: start, end: end},
+                dataType: "JSON",
+                success: function (res) {
+                    config.series[0].data = res.data;
+                    Highcharts.chart('priority', config);
+
+                }
+            })
         }
     </script>
 {% endblock %}

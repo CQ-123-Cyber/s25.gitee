@@ -19,8 +19,11 @@ urlpatterns = [
     url(r'^image/code/$', account.image_code, name='image_code'),
     url(r'^send/sms/$', account.send_sms, name='send_sms'),
     url(r'^index/$', home.index, name='index'),
-
     url(r'^logout/$', account.logout, name='logout'),
+
+    url(r'^price/$', home.price, name='price'),
+    url(r'^payment/(?P<policy_id>\d+)/$', home.payment, name='payment'),
+
     # 项目列表
     url(r'^project/list/$', project.project_list, name='project_list'),
     # /project/star/my/1

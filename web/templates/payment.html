@@ -5,7 +5,7 @@
 {% block content %}
 
     <div class="container">
-        <h2>订单信息</h2>
+        <h2>订单信息（30分钟失效）</h2>
         <table class="table">
             <thead>
             <tr>
@@ -37,7 +37,7 @@
                 </div>
             </div>
         {% endif %}
-        <a class="btn btn-primary" href="#">立即支付</a>
+        <a class="btn btn-primary" href="{% url 'pay' %}">立即支付</a>
     </div>
 
 {% endblock %}

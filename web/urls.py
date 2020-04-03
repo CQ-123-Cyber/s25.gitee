@@ -54,6 +54,7 @@ urlpatterns = [
         url(r'^issues/invite/url/$', issues.invite_url, name='invite_url'),
 
         url(r'^dashboard/$', dashboard.dashboard, name='dashboard'),
+        url(r'^dashboard/issues/chart/$', dashboard.issues_chart, name='issues_chart'),
 
     ], None, None)),
 

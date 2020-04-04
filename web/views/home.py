@@ -65,7 +65,8 @@ def payment(request, policy_id):
     }
     conn = get_redis_connection()
     key = 'payment_{}'.format(request.tracer.user.mobile_phone)
-    conn.set(key, json.dumps(context), nx=60 * 30)
+    # conn.set(key, json.dumps(context), nx=60 * 30)
+    conn.set(key, json.dumps(context), ex=60 * 30) # nx参数写错了，应该是ex
 
     context['policy_object'] = policy_object
     context['transaction'] = _object

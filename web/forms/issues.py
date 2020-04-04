@@ -14,6 +14,8 @@ class IssuesModelForm(BootStrapForm, forms.ModelForm):
             "attention": forms.SelectMultiple(
                 attrs={'class': "selectpicker", "data-live-search": "true", "data-actions-box": "true"}),
             "parent": forms.Select(attrs={'class': "selectpicker", "data-live-search": "true"}),
+            "start_date": forms.DateTimeInput(attrs={'autocomplete': "off"}),
+            "end_date": forms.DateTimeInput(attrs={'autocomplete': "off"})
         }
 
     def __init__(self, request, *args, **kwargs):

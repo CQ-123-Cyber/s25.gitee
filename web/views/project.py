@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+
 import time
 from django.shortcuts import render, HttpResponse, redirect
 from django.http import JsonResponse
@@ -47,7 +48,7 @@ def project_list(request):
     if form.is_valid():
         name = form.cleaned_data['name']
         # 1. 为项目创建一个桶
-        bucket = "{}-{}-{}-1251317460".format(name, request.tracer.user.mobile_phone, str(int(time.time())))
+        bucket = "{}-{}-1251317460".format(request.tracer.user.mobile_phone, str(int(time.time())))
         region = 'ap-chengdu'
         create_bucket(bucket, region)
 

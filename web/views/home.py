@@ -45,13 +45,15 @@ def payment(request, policy_id):
     _object = None
     if request.tracer.price_policy.category == 2:
         # 找到之前订单：总支付费用 、 开始~结束时间、剩余天数 = 抵扣的钱
+        # 之前的实际支付价格
         _object = models.Transaction.objects.filter(user=request.tracer.user, status=2).order_by('-id').first()
         total_timedelta = _object.end_datetime - _object.start_datetime
         balance_timedelta = _object.end_datetime - datetime.datetime.now()
         if total_timedelta.days == balance_timedelta.days:
-            balance = _object.price / total_timedelta.days * (balance_timedelta.days - 1)
+            # 按照价值进行计算抵扣金额
+            balance = _object.price_policy * price * _object.count / total_timedelta.days * (balance_timedelta.days - 1)
         else:
-            balance = _object.price / total_timedelta.days * balance_timedelta.days
+            balance = _object.price_policy * price * _object.count / total_timedelta.days * balance_timedelta.days
 
     if balance >= origin_price:
         return redirect('price')
@@ -66,7 +68,7 @@ def payment(request, policy_id):
     conn = get_redis_connection()
     key = 'payment_{}'.format(request.tracer.user.mobile_phone)
     # conn.set(key, json.dumps(context), nx=60 * 30)
-    conn.set(key, json.dumps(context), ex=60 * 30) # nx参数写错了，应该是ex
+    conn.set(key, json.dumps(context), ex=60 * 30)  # nx参数写错了，应该是ex（表示超时时间） ps：nx=True,表示redis中已存在key，再次执行时候就不会再设置了。
 
     context['policy_object'] = policy_object
     context['transaction'] = _object
